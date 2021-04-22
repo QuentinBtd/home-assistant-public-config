@@ -1,0 +1,200 @@
+input_datetime:
+  wake_up_work_time:
+    name: Heure
+    icon: mdi:timer
+    has_date: false
+    has_time: true
+  wake_up_occasional_time:
+    name: Heure
+    icon: mdi:timer
+    has_date: true
+    has_time: true
+
+input_boolean:
+  wake_up_work_state:
+    name: Etat
+    icon: mdi:alarm-check
+  wake_up_work_light:
+    name: En lumière
+    icon: mdi:lightbulb-on-outline
+  wake_up_work_music:
+    name: En musique
+    icon: mdi:music
+  wake_up_occasional_state:
+    name: Etat
+    icon: mdi:alarm-check
+  wake_up_occasional_light:
+    name: En lumière
+    icon: mdi:lightbulb-on-outline
+  wake_up_occasional_music:
+    name: En musique
+    icon: mdi:music
+
+input_select:
+  wake_up_work_playlist:
+    name: Playlist de réveil
+    options:
+      - Réveil de Quentin
+      - Réveil Calme de Quentin
+  wake_up_occasional_playlist:
+    name: Playlist de réveil
+    options:
+      - Réveil de Quentin
+      - Réveil Calme de Quentin
+
+input_number:
+  wake_up_work_light_time_transition:
+    name: Temps d'allumage
+    icon: mdi:transition-masked
+    min: 0
+    max: 60
+    step: 5
+    unit_of_measurement: mins
+  wake_up_occasional_light_time_transition:
+    name: Temps d'allumage
+    icon: mdi:transition-masked
+    min: 0
+    max: 60
+    step: 5
+    unit_of_measurement: mins
+
+automation:
+  ###
+  # Wake UP work
+  ###
+  ### Music
+  - id: "wake_up_work_music"
+    alias: "Wake UP work : start music"
+    trigger:
+      - platform: time
+        at: input_datetime.wake_up_work_time
+    condition:
+      condition: and
+      conditions:
+        - condition: state
+          entity_id: binary_sensor.workday
+          state: "on"
+        - condition: state
+          entity_id: input_boolean.wake_up_work_music
+          state: "on"
+        - condition: state
+          entity_id: input_boolean.wake_up_work_state
+          state: "on"
+    action:
+      - service: script.wake_up_music
+        data:
+          playlist: "{{ states('input_select.wake_up_work_playlist') }}"
+  ### Light
+  - id: "wake_up_work_light"
+    alias: "Wake UP work : turn on light"
+    trigger:
+      - platform: template
+        value_template: "{{ states('sensor.time') == (((state_attr('input_datetime.wake_up_work_time', 'timestamp') | int) - ((states('input_number.wake_up_work_light_time_transition') | int) * 60)) | timestamp_custom('%H:%M', False)) }}"
+    condition:
+      condition: and
+      conditions:
+        - condition: state
+          entity_id: binary_sensor.workday
+          state: "on"
+        - condition: state
+          entity_id: input_boolean.wake_up_work_light
+          state: "on"
+        - condition: state
+          entity_id: input_boolean.wake_up_work_state
+          state: "on"
+    action:
+      - service: script.wake_up_light
+        data_template:
+          time_transition: "{{ ((states('input_number.wake_up_work_light_time_transition') | int) * 60) }}"
+  ###
+  # Wake UP occasional
+  ###
+  ### Turn Off
+  - id: "wake_up_occasional_turn_off"
+    alias: "Wake UP Occasional : turn OFF"
+    trigger:
+      - platform: time
+        at: input_datetime.wake_up_occasional_time
+    condition:
+      condition: and
+      conditions:
+        - condition: state
+          entity_id: input_boolean.wake_up_occasional_state
+          state: "on"
+    action:
+      - delay: 00:00:10
+      - service: input_boolean.turn_off
+        data: {}
+        entity_id: input_boolean.wake_up_occasional_state
+  ### Music
+  - id: "wake_up_occasional_music"
+    alias: "Wake UP Occasional : start music"
+    trigger:
+      - platform: time
+        at: input_datetime.wake_up_occasional_time
+    condition:
+      condition: and
+      conditions:
+        - condition: state
+          entity_id: input_boolean.wake_up_occasional_music
+          state: "on"
+        - condition: state
+          entity_id: input_boolean.wake_up_occasional_state
+          state: "on"
+    action:
+      - service: script.wake_up_music
+        data:
+          playlist: "{{ states('input_select.wake_up_occasional_playlist') }}"
+  ### Light
+  - id: "wake_up_occasional_light"
+    alias: "Wake UP Occasional : turn on light"
+    trigger:
+      - platform: template
+        value_template: "{{ states('sensor.date_time') == (((state_attr('input_datetime.wake_up_occasional_time', 'timestamp') | int) - ((states('input_number.wake_up_occasional_light_time_transition') | int) * 60)) | timestamp_custom('%Y-%m-%d, %H:%M', True)) }}"
+    condition:
+      condition: and
+      conditions:
+        - condition: state
+          entity_id: input_boolean.wake_up_occasional_light
+          state: "on"
+        - condition: state
+          entity_id: input_boolean.wake_up_occasional_state
+          state: "on"
+    action:
+      - service: script.wake_up_light
+        data_template:
+          time_transition: "{{ ((states('input_number.wake_up_occasional_light_time_transition') | int) * 60) }}"
+
+script:
+  wake_up_music:
+    sequence:
+      - service: media_player.select_source
+        data:
+          entity_id: media_player.spotify_quentin
+          source: "Chambre"
+      - service: media_player.volume_set
+        data:
+          entity_id: media_player.spotify_quentin
+          volume_level: 0.3
+      - service: media_player.play_media
+        data_template:
+          entity_id: media_player.spotify_quentin
+          media_content_type: playlist
+          media_content_id: >
+            {% if playlist == 'Réveil Calme de Quentin' %}
+              spotify:playlist:3fZoUfwY0fhuMt7IKrVd0b
+            {% else %}
+              spotify:playlist:6QcK7aQq56hWEAQpj5zhiN
+            {% endif %}
+      - service: media_player.shuffle_set
+        data:
+          entity_id: media_player.spotify_quentin
+          shuffle: true
+  wake_up_light:
+    sequence:
+      - service: light.turn_on
+        data:
+          brightness_pct: 100
+          color_temp: 255
+          transition: "{{ time_transition }}"
+        entity_id: light.chambre
