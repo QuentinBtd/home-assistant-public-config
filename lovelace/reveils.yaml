@@ -1,46 +1,111 @@
-type: entities
-icon: 'mdi:alarm'
-entities:
-  - entity: input_boolean.wake_up_work_state
-  - entity: input_datetime.wake_up_work_time
-  - entity: input_boolean.wake_up_work_light
-  - type: conditional
-    conditions:
-      - entity: input_boolean.wake_up_work_light
-        state: 'on'
-    row:
-      entity: input_number.wake_up_work_light_time_transition
-  - entity: input_boolean.wake_up_work_music
-  - type: conditional
-    conditions:
-      - entity: input_boolean.wake_up_work_music
-        state: 'on'
-    row:
-      entity: input_select.wake_up_work_playlist
-title: Réveil Travail
-show_header_toggle: false
-state_color: true
-
-type: entities
-icon: 'mdi:alarm'
-entities:
-  - entity: input_boolean.wake_up_occasional_state
-  - entity: input_datetime.wake_up_occasional_time
-  - entity: input_boolean.wake_up_occasional_light
-  - type: conditional
-    conditions:
-      - entity: input_boolean.wake_up_occasional_light
-        state: 'on'
-    row:
-      entity: input_number.wake_up_occasional_light_time_transition
-  - entity: input_boolean.wake_up_occasional_music
-  - type: conditional
-    conditions:
-      - entity: input_boolean.wake_up_occasional_music
-        state: 'on'
-    row:
-      entity: input_select.wake_up_occasional_playlist
-title: Réveil Occasionnel
-show_header_toggle: false
-state_color: true
-
+type: vertical-stack
+title: Quentin
+cards:
+  - type: entities
+    icon: mdi:alarm
+    entities:
+      - entity: input_boolean.wake_up_work_state
+      - entity: input_datetime.wake_up_work_time
+      - type: custom:collapsable-cards
+        title: Autres paramètres
+        cards:
+          - type: entities
+            entities:
+              - entity: input_boolean.wake_up_work_light
+              - type: conditional
+                conditions:
+                  - entity: input_boolean.wake_up_work_light
+                    state: 'on'
+                row:
+                  entity: input_number.wake_up_work_light_time_transition
+              - type: conditional
+                conditions:
+                  - entity: input_boolean.wake_up_work_light
+                    state: 'on'
+                row:
+                  entity: input_number.wake_up_work_light_max_brightness
+              - type: divider
+                style:
+                  height: 1px
+                  width: 100%
+                  margin-left: auto
+                  margin-right: auto
+                  background: '#62717b'
+              - entity: input_boolean.wake_up_work_music
+              - type: conditional
+                conditions:
+                  - entity: input_boolean.wake_up_work_music
+                    state: 'on'
+                row:
+                  entity: input_select.wake_up_work_playlist
+              - type: divider
+                style:
+                  height: 1px
+                  width: 100%
+                  margin-left: auto
+                  margin-right: auto
+                  background: '#62717b'
+              - entity: input_boolean.wake_up_work_go2sleep_alert
+              - type: conditional
+                conditions:
+                  - entity: input_boolean.wake_up_work_go2sleep_alert
+                    state: 'on'
+                row:
+                  entity: input_number.wake_up_work_go2sleep_time_before_alert
+    title: Réveil Travail
+    show_header_toggle: false
+    state_color: true
+  - type: entities
+    icon: mdi:alarm
+    entities:
+      - entity: input_boolean.wake_up_occasional_state
+      - entity: input_datetime.wake_up_occasional_time
+      - type: custom:collapsable-cards
+        title: Autres paramètres
+        cards:
+          - type: entities
+            entities:
+              - entity: input_boolean.wake_up_occasional_light
+              - type: conditional
+                conditions:
+                  - entity: input_boolean.wake_up_occasional_light
+                    state: 'on'
+                row:
+                  entity: input_number.wake_up_occasional_light_time_transition
+              - type: conditional
+                conditions:
+                  - entity: input_boolean.wake_up_occasional_light
+                    state: 'on'
+                row:
+                  entity: input_number.wake_up_occasional_light_max_brightness
+              - type: divider
+                style:
+                  height: 1px
+                  width: 100%
+                  margin-left: auto
+                  margin-right: auto
+                  background: '#62717b'
+              - entity: input_boolean.wake_up_occasional_music
+              - type: conditional
+                conditions:
+                  - entity: input_boolean.wake_up_occasional_music
+                    state: 'on'
+                row:
+                  entity: input_select.wake_up_occasional_playlist
+              - type: divider
+                style:
+                  height: 1px
+                  width: 100%
+                  margin-left: auto
+                  margin-right: auto
+                  background: '#62717b'
+              - entity: input_boolean.wake_up_occasional_go2sleep_alert
+              - type: conditional
+                conditions:
+                  - entity: input_boolean.wake_up_occasional_go2sleep_alert
+                    state: 'on'
+                row:
+                  entity: input_number.wake_up_occasional_go2sleep_time_before_alert
+    title: Réveil Occasionnel
+    show_header_toggle: false
+    state_color: true

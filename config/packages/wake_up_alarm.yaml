@@ -20,6 +20,9 @@ input_boolean:
   wake_up_work_music:
     name: En musique
     icon: mdi:music
+  wake_up_work_go2sleep_alert:
+    name: Avertissement dodo
+    icon: mdi:bell-sleep
   wake_up_occasional_state:
     name: Etat
     icon: mdi:alarm-check
@@ -29,6 +32,9 @@ input_boolean:
   wake_up_occasional_music:
     name: En musique
     icon: mdi:music
+  wake_up_occasional_go2sleep_alert:
+    name: Avertissement dodo
+    icon: mdi:bell-sleep
 
 input_select:
   wake_up_work_playlist:
@@ -49,14 +55,42 @@ input_number:
     min: 0
     max: 60
     step: 5
-    unit_of_measurement: mins
+    unit_of_measurement: minutes
+  wake_up_work_go2sleep_time_before_alert:
+    name: Avertir X heures avant le réveil
+    icon: mdi:timer-sand
+    min: 2
+    max: 12
+    step: 1
+    unit_of_measurement: heures
+  wake_up_work_light_max_brightness:
+    name: Luminiosté maximale
+    icon: mdi:brightness-percent
+    min: 0
+    max: 100
+    step: 5
+    unit_of_measurement: "%"
   wake_up_occasional_light_time_transition:
     name: Temps d'allumage
     icon: mdi:transition-masked
     min: 0
     max: 60
     step: 5
-    unit_of_measurement: mins
+    unit_of_measurement: minutes
+  wake_up_occasional_go2sleep_time_before_alert:
+    name: Avertir X heures avant le réveil
+    icon: mdi:timer-sand
+    min: 2
+    max: 12
+    step: 1
+    unit_of_measurement: heures
+  wake_up_occasional_light_max_brightness:
+    name: Luminiosté maximale
+    icon: mdi:brightness-percent
+    min: 0
+    max: 100
+    step: 5
+    unit_of_measurement: "%"
 
 automation:
   ###
@@ -106,6 +140,30 @@ automation:
       - service: script.wake_up_light
         data_template:
           time_transition: "{{ ((states('input_number.wake_up_work_light_time_transition') | int) * 60) }}"
+          max_light_brightness: "{{ states('input_number.wake_up_work_light_max_brightness') }}"
+  ### Go2Sleep Alert
+  - id: wake_up_work_go2sleep_alert
+    alias: "Wake UP work : send alert to go sleep"
+    trigger:
+      - platform: template
+        value_template: "{{ states('sensor.time') == (((state_attr('input_datetime.wake_up_work_time', 'timestamp') | int) - (states('input_number.wake_up_work_go2sleep_time_before_alert') | int * 3600)) | timestamp_custom('%H:%M', False)) }}"
+    condition:
+      condition: and
+      conditions:
+        - condition: state
+          entity_id: binary_sensor.workday_tomorrow
+          state: "on"
+        - condition: state
+          entity_id: input_boolean.wake_up_work_state
+          state: "on"
+        - condition: state
+          entity_id: input_boolean.wake_up_work_go2sleep_alert
+          state: "on"
+    action:
+      - service: script.go2sleep_alert
+        data:
+          hours: "{{ (states('input_number.wake_up_work_go2sleep_time_before_alert') | int) }}"
+
   ###
   # Wake UP occasional
   ###
@@ -164,6 +222,26 @@ automation:
       - service: script.wake_up_light
         data_template:
           time_transition: "{{ ((states('input_number.wake_up_occasional_light_time_transition') | int) * 60) }}"
+          max_light_brightness: "{{ states('input_number.wake_up_occasional_light_max_brightness') }}"
+  ### Go2Sleep Alert
+  - id: wake_up_occasional_go2sleep_alert
+    alias: "Wake UP occasional : send alert to go sleep"
+    trigger:
+      - platform: template
+        value_template: "{{ states('sensor.date_time') == (((state_attr('input_datetime.wake_up_occasional_time', 'timestamp') | int) - ((states('input_number.wake_up_occasional_go2sleep_time_before_alert') | int) * 3600 )) | timestamp_custom('%Y-%m-%d, %H:%M', True)) }}"
+    condition:
+      condition: and
+      conditions:
+        - condition: state
+          entity_id: input_boolean.wake_up_occasional_state
+          state: "on"
+        - condition: state
+          entity_id: input_boolean.wake_up_occasional_go2sleep_alert
+          state: "on"
+    action:
+      - service: script.go2sleep_alert
+        data:
+          hours: "{{ (states('input_number.wake_up_occasional_go2sleep_time_before_alert') | int) }}"
 
 script:
   wake_up_music:
@@ -172,6 +250,11 @@ script:
         data:
           entity_id: media_player.spotify_quentin
           source: "Chambre"
+      - service: media_player.play_media
+        data_template:
+          entity_id: media_player.spotify_quentin
+          media_content_type: music
+          media_content_id: spotify:track:4jaXxB0DJ6X4PdjMK8XVfu
       - service: media_player.volume_set
         data:
           entity_id: media_player.spotify_quentin
@@ -194,7 +277,22 @@ script:
     sequence:
       - service: light.turn_on
         data:
-          brightness_pct: 100
-          color_temp: 255
+          brightness_pct: 1
+          color_name: tan
+        target:
+          entity_id: light.chambre
+      - delay: "00:00:01"
+      - service: light.turn_on
+        data:
+          brightness_pct: "{{ max_light_brightness }}"
+          color_name: tan
           transition: "{{ time_transition }}"
-        entity_id: light.chambre
+        target:
+          entity_id: light.chambre
+  go2sleep_alert:
+    sequence:
+    - service: notify.notify
+      data_template:
+        title: "Information"
+        message: >-
+          Le réveil sonnera dans {{hours}} heures. Il est temps d'aller vous coucher.
