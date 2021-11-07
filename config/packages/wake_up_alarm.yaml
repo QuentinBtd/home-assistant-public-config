@@ -50,10 +50,17 @@ input_select:
 
 input_number:
   wake_up_work_light_time_transition:
-    name: Temps d'allumage
+    name: Durée de transition
     icon: mdi:transition-masked
     min: 0
     max: 60
+    step: 5
+    unit_of_measurement: minutes
+  wake_up_work_light_shift_start_time:
+    name: Décalage d'allumage
+    icon: mdi:chart-gantt
+    min: -30
+    max: 30
     step: 5
     unit_of_measurement: minutes
   wake_up_work_go2sleep_time_before_alert:
@@ -70,11 +77,32 @@ input_number:
     max: 100
     step: 5
     unit_of_measurement: "%"
+  wake_up_work_music_max_volume:
+    name: Volume maximal
+    icon: mdi:volume-high
+    min: 0
+    max: 100
+    step: 10
+    unit_of_measurement: "%"
+  wake_up_work_music_volume_transition:
+    name: Durée de transition
+    icon: mdi:transition
+    min: 0
+    max: 10
+    step: 1
+    unit_of_measurement: "minutes"
   wake_up_occasional_light_time_transition:
-    name: Temps d'allumage
+    name: Durée de transition
     icon: mdi:transition-masked
     min: 0
     max: 60
+    step: 5
+    unit_of_measurement: minutes
+  wake_up_occasional_light_shift_start_time:
+    name: Décalage d'allumage
+    icon: mdi:chart-gantt
+    min: -30
+    max: 30
     step: 5
     unit_of_measurement: minutes
   wake_up_occasional_go2sleep_time_before_alert:
@@ -91,6 +119,21 @@ input_number:
     max: 100
     step: 5
     unit_of_measurement: "%"
+  wake_up_occasional_music_max_volume:
+    name: Volume maximal
+    icon: mdi:volume-high
+    min: 0
+    max: 100
+    step: 10
+    unit_of_measurement: "%"
+  wake_up_occasional_music_volume_transition:
+    name: Durée de transition
+    icon: mdi:transition
+    min: 0
+    max: 10
+    step: 1
+    unit_of_measurement: "minutes"
+
 
 automation:
   ###
@@ -118,12 +161,14 @@ automation:
       - service: script.wake_up_music
         data:
           playlist: "{{ states('input_select.wake_up_work_playlist') }}"
+          volume_transition: "{{ states('input_number.wake_up_work_music_max_volume') }}"
+          volume_max: "{{ states('input_number.wake_up_work_music_volume_transition') }}"
   ### Light
   - id: "wake_up_work_light"
     alias: "Wake UP work : turn on light"
     trigger:
       - platform: template
-        value_template: "{{ states('sensor.time') == (((state_attr('input_datetime.wake_up_work_time', 'timestamp') | int) - ((states('input_number.wake_up_work_light_time_transition') | int) * 60)) | timestamp_custom('%H:%M', False)) }}"
+        value_template: "{{ states('sensor.time') == (((state_attr('input_datetime.wake_up_work_time', 'timestamp') | int) + ((states('input_number.wake_up_work_light_shift_start_time') | int) * 60)) | timestamp_custom('%H:%M', False)) }}"
     condition:
       condition: and
       conditions:
@@ -203,12 +248,14 @@ automation:
       - service: script.wake_up_music
         data:
           playlist: "{{ states('input_select.wake_up_occasional_playlist') }}"
+          volume_transition: "{{ states('input_number.wake_up_occasional_music_volume_transition') }}"
+          volume_max: "{{ states('input_number.wake_up_occasional_music_max_volume') }}"
   ### Light
   - id: "wake_up_occasional_light"
     alias: "Wake UP Occasional : turn on light"
     trigger:
       - platform: template
-        value_template: "{{ states('sensor.date_time') == (((state_attr('input_datetime.wake_up_occasional_time', 'timestamp') | int) - ((states('input_number.wake_up_occasional_light_time_transition') | int) * 60)) | timestamp_custom('%Y-%m-%d, %H:%M', True)) }}"
+        value_template: "{{ states('sensor.date_time') == (((state_attr('input_datetime.wake_up_occasional_time', 'timestamp') | int) + ((states('input_number.wake_up_occasional_light_shift_start_time') | int) * 60)) | timestamp_custom('%Y-%m-%d, %H:%M', True)) }}"
     condition:
       condition: and
       conditions:
@@ -258,21 +305,48 @@ script:
       - service: media_player.volume_set
         data:
           entity_id: media_player.spotify_quentin
-          volume_level: 0.3
+          volume_level: 0.0
       - service: media_player.play_media
         data_template:
           entity_id: media_player.spotify_quentin
           media_content_type: playlist
           media_content_id: >
             {% if playlist == 'Réveil Calme de Quentin' %}
-              spotify:playlist:3fZoUfwY0fhuMt7IKrVd0b
+              spotify:playlist:XXXX
             {% else %}
-              spotify:playlist:6QcK7aQq56hWEAQpj5zhiN
+              spotify:playlist:XXXX
             {% endif %}
       - service: media_player.shuffle_set
         data:
           entity_id: media_player.spotify_quentin
           shuffle: true
+      - service: media_player.media_pause
+        target:
+          entity_id: media_player.spotify_quentin
+      - delay: 
+          seconds: "2"
+      - service: media_player.media_play
+        target:
+          entity_id: media_player.spotify_quentin
+      - alias: "Volume transition"
+        repeat:
+          while:
+            - condition: template
+              value_template: "{{ ((state_attr('media_player.spotify_quentin', 'volume_level') * 100) | int) < (volume_max | int) }}"
+          sequence:
+            - service: media_player.volume_set
+              target:
+                entity_id: media_player.spotify_quentin
+              data_template:
+                volume_level: >-
+                  {%- if volume_transition == 0 -%}
+                  {{ (volume_max / 100) }}
+                  {%- else -%}
+                  {{ ((state_attr('media_player.spotify_quentin', 'volume_level') * 100 + 1) / 100) }}
+                  {%- endif -%}
+            - delay: 
+                milliseconds: "{{ ((((volume_transition | int ) * 60  / (volume_max | int )) * 1000) | int) }}"
+
   wake_up_light:
     sequence:
       - service: light.turn_on
