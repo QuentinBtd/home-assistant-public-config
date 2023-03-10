@@ -1,0 +1,63 @@
+sensor:
+  - platform: template
+    sensors:
+      ha_uptime:
+        friendly_name: "Uptime Home Assistant"
+        icon_template: mdi:home-assistant
+        value_template: >-
+          {% set up_time =  as_timestamp(now()) - as_timestamp(states('sensor.uptime')) %}
+
+          {% if (up_time // 60) | int == 0 %}
+            Just restarted...
+          {% else %}
+            {% set minutes = (up_time // 60) | int %}
+            {% set hours = (minutes // 60) %}
+            {% set days = (hours // 24) %}
+            {% set weeks = (days // 7) %}
+
+            {% set minutes = (minutes % 60) %}
+            {% set hours =  (hours % 24) %}
+            {% set days = (days % 7) %}
+
+            {% macro phrase(value, name) %}
+                      {%- set value = value %}
+                      {{- '{}{}'.format(value, name) if value | int > 0 else '' }}
+            {%- endmacro %}
+
+            {% set text = [ phrase(weeks, 'w'), phrase(days, 'd'), phrase(hours, 'h'), phrase(minutes, 'm') ] | select('!=','') | list | join(', ') %}
+            {% set last_comma = text.rfind(',') %}
+            {% if last_comma != -1 %}
+              {% set text = text[:last_comma] + text[last_comma + 1:] %}
+            {% endif %}
+
+          {{ text }}
+          {% endif %}
+      last_reboot_date:
+        friendly_name: "Last reboot date"
+        value_template: >-
+          {% set text = (as_timestamp(states('sensor.uptime')) | int | timestamp_custom('%d/%m/%Y - %H:%M', True)) %}
+          {{ text }}
+
+automation:
+  - id: "alert_low_uptime"
+    alias: "Uptime : alert low uptime"
+    trigger:
+      - platform: template
+        value_template: >-
+          {% set uptime_value = ((as_timestamp(now()) | int) - (as_timestamp(states('sensor.uptime')) | int )) -%}
+          {{ (uptime_value >= 180) and (uptime_value < 240) }}
+    action:
+      - service: notify.user_qbr
+        data:
+          title: "❗️ Information"
+          message: "Home Assistant a redémarré {{ (as_timestamp(states('sensor.uptime')) | int) | timestamp_custom('le %d/%m/%Y à %H:%M', True) }}."
+  - id: "alert_hight_uptime"
+    alias: "Uptime : alert hight uptime"
+    trigger:
+      - platform: template
+        value_template: "{{ (((as_timestamp(now()) | int) - (as_timestamp(states('sensor.uptime')) | int))) == '54000' }}"
+    action:
+      - service: notify.user_qbr
+        data:
+          title: "❗️ Information"
+          message: "Home Assistant est démarré depuis 15 jours, {{ (as_timestamp(states('sensor.uptime')) | int) | timestamp_custom('le %d/%m/%Y à %H:%M', True) }}."

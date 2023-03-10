@@ -1,0 +1,14 @@
+
+sensor:
+  - platform: template
+    sensors:
+      antimoustiques_time_is_between_start_and_stop_times:
+        value_template: >
+          {% set current_time = (states('sensor.time')) %}
+          {% set start_time = ((state_attr('input_datetime.antimoustiques_start_time', 'timestamp')) | timestamp_custom('%H:%M', False)) %}
+          {% set stop_time = ((state_attr('input_datetime.antimoustiques_stop_time', 'timestamp')) | timestamp_custom('%H:%M', False)) %}
+          {% if start_time > stop_time -%}
+            {{ (current_time >= start_time) and (current_time > stop_time) or (current_time < start_time) and (current_time < stop_time) }}
+          {%- else -%}
+            {{ (current_time >= start_time) and (current_time < stop_time) }}
+          {%- endif %}

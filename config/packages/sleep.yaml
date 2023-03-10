@@ -1,0 +1,10 @@
+script:
+  scene_chambre_progressive_light_turn_off:
+    alias: "Chambre - Extinction progressive de la lumière"
+    sequence:
+      - service: light.turn_off
+        data:
+          transition: 1200
+        target:
+          entity_id: light.chambre
+

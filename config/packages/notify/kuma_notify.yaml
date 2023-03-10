@@ -1,0 +1,21 @@
+sensor:
+  - platform: template
+    sensors:
+      secret_webhook_notify_kuma_token:
+        value_template: !secret webhook_notify_kuma
+
+automation:
+  - id: webhook_notify_kuma
+    alias: "Notify : webhook kuma"
+    mode: single
+    trigger:
+      - platform: webhook
+        webhook_id: "kuma-notify"
+    condition:
+      condition: template
+      value_template: "{{ (trigger.json['token'] == states('sensor.secret_webhook_notify_kuma_token')) }}"
+    action:
+      - service: notify.user_qbr
+        data:
+          title: "{{ trigger.json.title }}"
+          message: "{{ trigger.json['msg'] }}"

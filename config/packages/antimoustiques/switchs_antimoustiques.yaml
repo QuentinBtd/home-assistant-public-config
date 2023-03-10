@@ -1,0 +1,36 @@
+switch:
+  - platform: template
+    switches:
+      antimoustiques_bureau:
+        friendly_name: Antimoustiques Bureau
+        value_template: "{{ is_state('switch.plug_osram_01', 'on') }}"
+        turn_on:
+          service: switch.turn_on
+          target:
+            entity_id: switch.plug_osram_01
+        turn_off:
+          service: switch.turn_off
+          target:
+            entity_id: switch.plug_osram_01
+      antimoustiques_chambre:
+        friendly_name: Antimoustiques Chambre
+        value_template: "{{ is_state('switch.plug_osram_02', 'on') }}"
+        turn_on:
+          service: switch.turn_on
+          target:
+            entity_id: switch.plug_osram_02
+        turn_off:
+          service: switch.turn_off
+          target:
+            entity_id: switch.plug_osram_02
+      antimoustiques_salon:
+        friendly_name: Antimoustiques Salon
+        value_template: "{{ is_state('switch.plug_osram_03', 'on') }}"
+        turn_on:
+          service: switch.turn_on
+          target:
+            entity_id: switch.plug_osram_03
+        turn_off:
+          service: switch.turn_off
+          target:
+            entity_id: switch.plug_osram_03

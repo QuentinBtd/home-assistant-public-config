@@ -1,0 +1,3 @@
+input_boolean:
+  ventilateurs_periode:
+    name: Période des ventilateurs

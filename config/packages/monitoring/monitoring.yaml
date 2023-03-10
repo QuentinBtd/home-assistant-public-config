@@ -1,0 +1,27 @@
+automation:
+  - id: "check_zigate_device_state"
+    alias: "Monitoring : Check Zigate connected devices state"
+    trigger:
+      - platform: state
+        entity_id: !secret monitoring_check_zigate_device_state_entites
+    condition:
+      condition: template
+      value_template: >
+        {{ trigger.to_state.state in ['unavailable','unknown'] }}
+    action:
+      - service: notify.user_qbr
+        data:
+          title: "📶 Information"
+          message: "Le device Zigbee {{ trigger.to_state.name }} est indisponible. #zigate"
+  - id: "check_battery"
+    alias: "Monitoring : Check Zigbee devices battery state"
+    trigger:
+      platform: numeric_state
+      entity_id: !secret monitoring_check_battery
+      below: 20
+      above: 18
+    action:
+      - service: notify.user_qbr
+        data:
+          title: "🔋 Information"
+          message: "{{ trigger.to_state.name }} est inférrieur à 20%."

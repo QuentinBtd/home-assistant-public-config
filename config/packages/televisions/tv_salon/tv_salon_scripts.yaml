@@ -1,0 +1,74 @@
+script:
+  television_salon_turn_on_then_set_source:
+    sequence:
+      - service: media_player.turn_on
+        target:
+          entity_id: media_player.television_salon
+      - alias: "Check Television Salon state"
+        continue_on_error: true
+        repeat:
+          while:
+            - condition: template
+              value_template: "{{ states('media_player.television_salon') != 'on' }}"
+          sequence:
+            - delay:
+                seconds: 1
+      - service: media_player.select_source
+        data_template:
+          source: "{{ source }}"
+        target:
+          entity_id: media_player.television_salon
+  television_salon_launch_netflix:
+    alias: Netflix
+    sequence:
+      - service: script.television_salon_turn_on_then_set_source
+        data:
+          source: "Netflix"
+  television_salon_launch_disneyplus:
+    alias: Disney Plus
+    sequence:
+      - service: script.television_salon_turn_on_then_set_source
+        data:
+          source: "Disney+"
+  television_salon_launch_prime_video:
+    alias: Prime Video
+    sequence:
+      - service: script.television_salon_turn_on_then_set_source
+        data:
+          source: "Prime Video"
+  television_salon_launch_youtube:
+    alias: YouTube
+    sequence:
+      - service: script.television_salon_turn_on_then_set_source
+        data:
+          source: "YouTube"
+  television_salon_launch_plex:
+    alias: Plex
+    sequence:
+      - service: script.television_salon_turn_on_then_set_source
+        data:
+          source: "Plex"
+  television_salon_launch_ps4:
+    alias: PS4
+    sequence:
+      - service: script.television_salon_turn_on_then_set_source
+        data:
+          source: "PS4 Console de jeu"
+  television_salon_launch_twitch:
+    alias: Twitch
+    sequence:
+      - service: script.television_salon_turn_on_then_set_source
+        data:
+          source: "Twitch"
+  television_salon_launch_firestick:
+    alias: FireStick
+    sequence:
+      - service: script.television_salon_turn_on_then_set_source
+        data:
+          source: "HW-Q990B"
+  television_salon_launch_geforcenow:
+    alias: GeForce Now
+    sequence:
+      - service: script.television_salon_turn_on_then_set_source
+        data:
+          source: "NVIDIA GeForce® NOW™"

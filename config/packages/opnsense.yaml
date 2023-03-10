@@ -1,0 +1,6 @@
+# opnsense:
+#   url: !secret opnsense_url
+#   api_secret: !secret opnsense_api_secret
+#   api_key: !secret opnsense_api_key
+#   verify_ssl: false
+#   tracker_interfaces: !secret opnsense_tracker_interfaces

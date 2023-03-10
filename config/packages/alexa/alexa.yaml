@@ -1,0 +1,21 @@
+alexa:
+  smart_home:
+    #    locale: fr-FR
+    endpoint: https://api.eu.amazonalexa.com/v3/events
+    client_id: !secret alexa_smarthome_client_id
+    client_secret: !secret alexa_smarthome_client_secret
+    entity_config:
+      sensor.motion_sensor_wc_temperature:
+        name: Thermomètre WC
+      binary_sensor.sar_portail_rings_trigger_alexa_alert:
+        display_categories: DOORBELL
+      switch.ventilateur_chambre:
+        display_categories: FAN
+      switch.pc_sanageyama:
+        display_categories: COMPUTER
+      input_boolean.sandbox_1:
+        display_categories: CONTACT_SENSOR
+      camera.camera_salon_hd_stream:
+        display_categories: CAMERA
+    filter:
+      include_entities: !secret alexa_smarthome_include_entities

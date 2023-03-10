@@ -1,0 +1,38 @@
+automation:
+  - id: "television_salon_set_volume_when_nintendo_switch"
+    alias: "Télévisions : set volume to 15  on TV Salon when source is Nintendo Switch "
+    trigger:
+      platform: state
+      entity_id: sensor.television_salon_current_source
+      to: "Nintendo Switch"
+    action:
+      - service: media_player.volume_set
+        data:
+          entity_id: media_player.television_salon
+          volume_level: 0.15
+  - id: "television_salon_set_volume_when_amazon_prime_video"
+    alias: "Télévisions : set volume to 20 on TV Salon when source is Amazon Prime Video"
+    trigger:
+      platform: state
+      entity_id: sensor.television_salon_current_source
+      to: "Amazon Prime Video"
+    action:
+      - service: media_player.volume_set
+        data:
+          entity_id: media_player.television_salon
+          volume_level: 0.2
+  - id: "television_salon_turn_on"
+    alias: "Télévisions : Allumer TV Salon"
+    description: ''
+    trigger:
+      - platform: device
+        device_id: !secret tv_salon_device_id
+        domain: webostv
+        type: webostv.turn_on
+    condition: []
+    action:
+      - service: wake_on_lan.send_magic_packet
+        data:
+          broadcast_address: !secret tv_salon_broadcast_address
+          mac: !secret tv_salon_mac_address
+    mode: single

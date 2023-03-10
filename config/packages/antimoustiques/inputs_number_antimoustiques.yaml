@@ -1,0 +1,15 @@
+input_number:
+  antimoustiques_sunset_offset:
+    name: Décallage / coucher du Soleil
+    icon: mdi:chart-gantt
+    min: -60
+    max: 60
+    step: 5
+    unit_of_measurement: minutes
+  antimoustiques_sunrise_offset:
+    name: Décalage / lever du Soleil
+    icon: mdi:chart-gantt
+    min: -60
+    max: 60
+    step: 5
+    unit_of_measurement: minutes

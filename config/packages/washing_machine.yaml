@@ -1,0 +1,74 @@
+binary_sensor:
+  - platform: ping
+    name: "Monita"
+    host: !secret washing_machine_monita_ip_address
+    count: 1
+    scan_interval: 30
+
+input_boolean:
+  monita_have_laundry:
+    name: Linge dans la machine
+
+automation:
+  - id: "set_monita_have_laundry_on"
+    alias: "Machine à laver : set Monita a du Linge"
+    trigger:
+      - platform: state
+        entity_id: binary_sensor.monita
+        from: "off"
+        to: "on"
+    action:
+      - service: input_boolean.turn_on
+        entity_id: input_boolean.monita_have_laundry
+  - id: "alert_monita_have_laundry"
+    alias: "Machine à laver : send alerts Monita a du linge"
+    trigger:
+      - platform: state
+        entity_id: binary_sensor.monita
+        from: "on"
+        to: "off"
+      - platform: state
+        entity_id: sensor.lave_linge_washer_machine_state
+        from: "run"
+        to: "stop"
+      - platform: time_pattern
+        minutes: "/15"
+    condition:
+      - condition: or
+        conditions:
+          - condition: state
+            entity_id: sensor.lave_linge_washer_machine_state
+            state: "stop"
+          - condition: state
+            entity_id: binary_sensor.monita
+            state: "off"
+      - condition: state
+        entity_id: input_boolean.monita_have_laundry
+        state: "on"
+    action:
+      - service: script.notif_monita_have_laundry
+  - id: "notif_action_monita_empty"
+    alias: "Machine à laver : Monita a été vidée."
+    trigger:
+      - platform: event
+        event_type: mobile_app_notification_action
+        event_data:
+          action: "empty_monita"
+    action:
+      - service: input_boolean.turn_off
+        entity_id: input_boolean.monita_have_laundry
+
+script:
+  notif_monita_have_laundry:
+    sequence:
+      - service: notify.all_users
+        data:
+          title: "Information "
+          message: "Il y a du linge dans Monita."
+          data:
+            actions:
+              - action: "empty_monita"
+                title: "J'ai vidé Monita !"
+              - action: "URI"
+                title: "Ouvrir"
+                uri: "/lovelace-pieces/area-salle-de-bain"

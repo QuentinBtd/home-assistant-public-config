@@ -1,0 +1,33 @@
+sensor:
+  - platform: min_max
+    name: weather_temperature_indoor_average
+    type: mean
+    entity_ids:
+      - sensor.weather_sensor_salon_temperature
+      - sensor.weather_sensor_bureau_temperature
+      - sensor.weather_sensor_chambre_temperature
+      - sensor.weather_sensor_cuisine_temperature
+      - sensor.weather_sensor_salle_de_bain_temperature
+  - platform: min_max
+    name: weather_humidity_indoor_average
+    type: mean
+    entity_ids:
+      - sensor.weather_sensor_salon_humidity
+      - sensor.weather_sensor_bureau_humidity
+      - sensor.weather_sensor_chambre_humidity
+      - sensor.weather_sensor_cuisine_humidity
+      - sensor.weather_sensor_salle_de_bain_humidity
+  - platform: min_max
+    name: weather_pressure_indoor_average
+    type: mean
+    entity_ids:
+      - sensor.weather_sensor_salon_pressure
+      - sensor.weather_sensor_bureau_pressure
+      - sensor.weather_sensor_chambre_pressure
+      - sensor.weather_sensor_cuisine_pressure
+      - sensor.weather_sensor_salle_de_bain_pressure
+
+input_boolean:
+  weather_summer_period:
+    name: Période de l'été
+

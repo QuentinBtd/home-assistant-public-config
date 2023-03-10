@@ -1,0 +1,5 @@
+sensor:
+  - platform: template
+    sensors:
+      television_salon_current_source:
+        value_template: "{{ state_attr('media_player.television_salon', 'source') }}"

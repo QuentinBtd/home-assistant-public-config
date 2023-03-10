@@ -1,0 +1,51 @@
+homeassistant:
+  customize:
+    input_boolean.noel_periode:
+      icon: mdi:pine-tree
+    switch.sapin_de_noel:
+      icon: mdi:pine-tree
+    switch.guirlande_bureau:
+      icon: mdi:string-lights
+    switch.guirlande_salon:
+      icon: mdi:string-lights
+
+input_boolean:
+  noel_periode:
+    name: Période de Noël
+
+switch:
+  - platform: template
+    switches:
+      sapin_de_noel:
+        friendly_name: Sapin de Noël
+        value_template: "{{ is_state('switch.plug_osram_02', 'on') }}"
+        turn_on:
+          service: switch.turn_on
+          target:
+            entity_id: switch.plug_osram_02
+        turn_off:
+          service: switch.turn_off
+          target:
+            entity_id: switch.plug_osram_02
+      guirlande_salon:
+        friendly_name: Guirlande Salon
+        value_template: "{{ is_state('switch.plug_osram_01', 'on') }}"
+        turn_on:
+          service: switch.turn_on
+          target:
+            entity_id: switch.plug_osram_01
+        turn_off:
+          service: switch.turn_off
+          target:
+            entity_id: switch.plug_osram_01
+      guirlande_bureau:
+        friendly_name: Guirlande Bureau
+        value_template: "{{ is_state('switch.plug_osram_03', 'on') }}"
+        turn_on:
+          service: switch.turn_on
+          target:
+            entity_id: switch.plug_osram_03
+        turn_off:
+          service: switch.turn_off
+          target:
+            entity_id: switch.plug_osram_03

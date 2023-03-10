@@ -1,0 +1,18 @@
+homeassistant:
+  customize:
+    switch.pc_sanageyama:
+      friendly_name: "Sanageyama"
+      icon: "mdi:desktop-tower-monitor"
+
+switch:
+  - platform: wake_on_lan
+    name: "pc_sanageyama"
+    mac: !secret computer_sanageyama_mac_address
+    host: !secret computer_sanageyama_ipv4_address
+    broadcast_address: !secret computer_sanageyama_ipv4_broadcast_address
+    broadcast_port: !secret computer_sanageyama_ipv4_broadcast_port
+    turn_off:
+      service: shell_command.turn_off_pc_sanageyama
+
+shell_command:
+  turn_off_pc_sanageyama: !secret computer_sanageyama_turn_off_pc_sanageyama

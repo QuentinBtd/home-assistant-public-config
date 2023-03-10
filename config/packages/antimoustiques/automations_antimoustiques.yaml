@@ -1,0 +1,471 @@
+automation:
+  - id: "antimoustiques_update_start_stop_times"
+    alias: "Antimoustiques : update start and stop times"
+    trigger:
+      - platform: sun
+        event: sunrise
+      - platform: state
+        entity_id: input_datetime.antimoustiques_start_time_choice
+      - platform: state
+        entity_id: input_datetime.antimoustiques_stop_time_choice
+      - platform: state
+        entity_id: input_boolean.antimoustiques_use_sunset_sunrise
+      - platform: state
+        entity_id: input_boolean.antimoustiques_use_hours
+      - platform: state
+        entity_id: input_number.antimoustiques_sunset_offset 
+      - platform: state
+        entity_id: input_number.antimoustiques_sunrise_offset 
+    action:
+      - choose:
+        - conditions: # Use sunset sunrise
+            - and:
+              - condition: state
+                entity_id: input_boolean.antimoustiques_use_sunset_sunrise
+                state: "on"
+              - condition: state
+                entity_id: input_boolean.antimoustiques_use_hours
+                state: "off"
+          sequence:
+            - service: input_datetime.set_datetime
+              target:
+                entity_id: input_datetime.antimoustiques_start_time
+              data_template:
+                time: "{{ (state_attr('sun.sun','next_setting') | as_timestamp | int + (states('input_number.antimoustiques_sunset_offset') | int * 60 )) | timestamp_custom('%H:%M', True) }}"
+            - service: input_datetime.set_datetime
+              target:
+                entity_id: input_datetime.antimoustiques_stop_time
+              data_template:
+                time: "{{ (state_attr('sun.sun','next_rising') | as_timestamp | int + (states('input_number.antimoustiques_sunrise_offset') | int * 60 )) | timestamp_custom('%H:%M', True) }}"
+        - conditions: # Use hours
+            - and:
+              - condition: state
+                entity_id: input_boolean.antimoustiques_use_sunset_sunrise
+                state: "off"
+              - condition: state
+                entity_id: input_boolean.antimoustiques_use_hours
+                state: "on"
+          sequence:
+            - service: input_datetime.set_datetime
+              target:
+                entity_id: input_datetime.antimoustiques_start_time
+              data_template:
+                time: "{{ (states('input_datetime.antimoustiques_start_time_choice')) }}"
+            - service: input_datetime.set_datetime
+              target:
+                entity_id: input_datetime.antimoustiques_stop_time
+              data_template:
+                time: "{{ (states('input_datetime.antimoustiques_stop_time_choice')) }}"
+  - id: "antimoustiques_use_sunset_sunrise_off_hours"
+    alias: "Antimoustiques : use sunset/sunrise turn of use hours"
+    trigger:
+      - platform: state
+        entity_id: input_boolean.antimoustiques_use_sunset_sunrise
+        from: "off"
+        to: "on"
+    action:
+      - service: input_boolean.turn_off
+        entity_id: input_boolean.antimoustiques_use_hours
+  - id: "antimoustiques_use_hours_off_sunset_sunrise"
+    alias: "Antimoustiques : use hours turn of use sunset/sunrise "
+    trigger:
+      - platform: state
+        entity_id: input_boolean.antimoustiques_use_hours
+        from: "off"
+        to: "on"
+    action:
+      - service: input_boolean.turn_off
+        entity_id: input_boolean.antimoustiques_use_sunset_sunrise
+  #####
+  ## Chambre
+  #####
+  - id: "antimoustique_chambre_on_off"
+    alias: "Antimoustiques : chambre on/off"
+    trigger:
+      - platform: state
+        entity_id: binary_sensor.magnet_sensor_window_chambre_state
+      - platform: state
+        entity_id: binary_sensor.magnet_sensor_door_chambre_state
+      - platform: state
+        entity_id: binary_sensor.magnet_sensor_window_salon_state
+      - platform: state
+        entity_id: binary_sensor.magnet_sensor_door_salon_state
+      - platform: state
+        entity_id: binary_sensor.magnet_sensor_window_bureau_state
+      - platform: state
+        entity_id: binary_sensor.magnet_sensor_door_bureau_state
+      - platform: state
+        entity_id: binary_sensor.magnet_sensor_window_cuisine_state
+      - platform: sun
+        event: sunset
+      - platform: sun
+        event: sunrise
+      - platform: time
+        at: input_datetime.antimoustiques_start_time
+      - platform: time
+        at: input_datetime.antimoustiques_stop_time
+      - platform: state
+        entity_id: alarm_control_panel.alarme
+    condition:
+      condition: and
+      conditions:
+        - condition: state
+          entity_id: input_boolean.moustiques_periode
+          state: "on"
+    action:
+      - choose:          
+          - conditions:
+              - or:
+                - condition: state
+                  entity_id: input_boolean.antimoustiques_use_sunset_sunrise
+                  state: "on"
+                - condition: state
+                  entity_id: input_boolean.antimoustiques_use_hours
+                  state: "on"
+            sequence:
+              - choose:
+                - conditions: # On
+                    - and:
+                      - condition: state
+                        entity_id: sensor.antimoustiques_time_is_between_start_and_stop_times
+                        state: "True"
+                      - or:
+                        - condition: state
+                          entity_id: binary_sensor.magnet_sensor_window_chambre_state
+                          state: "on"
+                        - and:
+                          - condition: state
+                            entity_id: binary_sensor.magnet_sensor_door_chambre_state
+                            state: "on"
+                          - or:
+                            - condition: state
+                              entity_id: binary_sensor.magnet_sensor_window_cuisine_state
+                              state: "on"
+                            - and:
+                              - condition: state
+                                entity_id: binary_sensor.magnet_sensor_window_salon_state
+                                state: "on"
+                              - condition: state
+                                entity_id: binary_sensor.magnet_sensor_door_salon_state
+                                state: "on"
+                            - and:
+                              - condition: state
+                                entity_id: binary_sensor.magnet_sensor_window_bureau_state
+                                state: "on"
+                              - condition: state
+                                entity_id: binary_sensor.magnet_sensor_door_bureau_state
+                                state: "on"
+                      - not:
+                        - or:
+                          - condition: state
+                            entity_id: alarm_control_panel.alarme
+                            state: "armed_away"
+                          - condition: state
+                            entity_id: alarm_control_panel.alarme
+                            state: "triggered"
+                  sequence:
+                    - service: switch.turn_on
+                      target:
+                        entity_id: switch.antimoustiques_chambre
+                - conditions: # Off
+                    - or:
+                      - condition: state
+                        entity_id: sensor.antimoustiques_time_is_between_start_and_stop_times
+                        state: "False"
+                      - and:
+                        - condition: state
+                          entity_id: binary_sensor.magnet_sensor_window_chambre_state
+                          state: "off"
+                        - or:
+                          - condition: state
+                            entity_id: binary_sensor.magnet_sensor_door_chambre_state
+                            state: "off"
+                          - and:
+                            - condition: state
+                              entity_id: binary_sensor.magnet_sensor_window_cuisine_state
+                              state: "off"
+                            - or:
+                              - condition: state
+                                entity_id: binary_sensor.magnet_sensor_window_salon_state
+                                state: "off"
+                              - condition: state
+                                entity_id: binary_sensor.magnet_sensor_door_salon_state
+                                state: "off"
+                            - or:
+                              - condition: state
+                                entity_id: binary_sensor.magnet_sensor_window_bureau_state
+                                state: "off"
+                              - condition: state
+                                entity_id: binary_sensor.magnet_sensor_door_bureau_state
+                                state: "off"
+                      - condition: state
+                        entity_id: alarm_control_panel.alarme
+                        state: "armed_away"
+                  sequence:
+                    - service: switch.turn_off
+                      target:
+                        entity_id: switch.antimoustiques_chambre
+  #####
+  ## Salon
+  #####
+  - id: "antimoustique_salon_on_off"
+    alias: "Antimoustiques : salon on/off"
+    trigger:
+      - platform: state
+        entity_id: binary_sensor.magnet_sensor_window_chambre_state
+      - platform: state
+        entity_id: binary_sensor.magnet_sensor_door_chambre_state
+      - platform: state
+        entity_id: binary_sensor.magnet_sensor_window_salon_state
+      - platform: state
+        entity_id: binary_sensor.magnet_sensor_door_salon_state
+      - platform: state
+        entity_id: binary_sensor.magnet_sensor_window_bureau_state
+      - platform: state
+        entity_id: binary_sensor.magnet_sensor_door_bureau_state
+      - platform: state
+        entity_id: binary_sensor.magnet_sensor_window_cuisine_state
+      - platform: sun
+        event: sunset
+      - platform: sun
+        event: sunrise
+      - platform: time
+        at: input_datetime.antimoustiques_start_time
+      - platform: time
+        at: input_datetime.antimoustiques_stop_time
+      - platform: state
+        entity_id: alarm_control_panel.alarme
+    condition:
+      condition: and
+      conditions:
+        - condition: state
+          entity_id: input_boolean.moustiques_periode
+          state: "on"
+    action:
+      - choose:
+        - conditions:
+            - or:
+              - condition: state
+                entity_id: input_boolean.antimoustiques_use_sunset_sunrise
+                state: "on"
+              - condition: state
+                entity_id: input_boolean.antimoustiques_use_hours
+                state: "on"
+          sequence:
+            - choose:
+              - conditions: # On
+                - and:
+                  - condition: state
+                    entity_id: sensor.antimoustiques_time_is_between_start_and_stop_times
+                    state: "True"
+                  - or:
+                    - condition: state
+                      entity_id: binary_sensor.magnet_sensor_window_salon_state
+                      state: "on"
+                    - and:
+                      - condition: state
+                        entity_id: binary_sensor.magnet_sensor_door_salon_state
+                        state: "on"
+                      - or:
+                        - condition: state
+                          entity_id: binary_sensor.magnet_sensor_window_cuisine_state
+                          state: "on"
+                        - and:
+                          - condition: state
+                            entity_id: binary_sensor.magnet_sensor_window_chambre_state
+                            state: "on"
+                          - condition: state
+                            entity_id: binary_sensor.magnet_sensor_door_chambre_state
+                            state: "on"
+                        - and:
+                          - condition: state
+                            entity_id: binary_sensor.magnet_sensor_window_bureau_state
+                            state: "on"
+                          - condition: state
+                            entity_id: binary_sensor.magnet_sensor_door_bureau_state
+                            state: "on"
+                  - not:
+                    - or:
+                      - condition: state
+                        entity_id: alarm_control_panel.alarme
+                        state: "armed_away"
+                      - condition: state
+                        entity_id: alarm_control_panel.alarme
+                        state: "triggered"
+                sequence:
+                  - service: switch.turn_on
+                    target:
+                      entity_id: switch.antimoustiques_salon
+              - conditions: # Off
+                  - or:
+                    - condition: state
+                      entity_id: sensor.antimoustiques_time_is_between_start_and_stop_times
+                      state: "False"
+                    - and:
+                      - condition: state
+                        entity_id: binary_sensor.magnet_sensor_window_salon_state
+                        state: "off"
+                      - or:
+                        - condition: state
+                          entity_id: binary_sensor.magnet_sensor_door_salon_state
+                          state: "off"
+                        - and:
+                          - condition: state
+                            entity_id: binary_sensor.magnet_sensor_window_cuisine_state
+                            state: "off"
+                          - or:
+                            - condition: state
+                              entity_id: binary_sensor.magnet_sensor_window_chambre_state
+                              state: "off"
+                            - condition: state
+                              entity_id: binary_sensor.magnet_sensor_door_chambre_state
+                              state: "off"
+                          - or:
+                            - condition: state
+                              entity_id: binary_sensor.magnet_sensor_window_bureau_state
+                              state: "off"
+                            - condition: state
+                              entity_id: binary_sensor.magnet_sensor_door_bureau_state
+                              state: "off"
+                    - condition: state
+                      entity_id: alarm_control_panel.alarme
+                      state: "armed_away"
+                sequence:
+                  - service: switch.turn_off
+                    target:
+                      entity_id: switch.antimoustiques_salon
+#####
+  ## Bureau
+  #####
+  - id: "antimoustique_bureau_on_off"
+    alias: "Antimoustiques : bureau on/off"
+    trigger:
+      - platform: state
+        entity_id: binary_sensor.magnet_sensor_window_chambre_state
+      - platform: state
+        entity_id: binary_sensor.magnet_sensor_door_chambre_state
+      - platform: state
+        entity_id: binary_sensor.magnet_sensor_window_salon_state
+      - platform: state
+        entity_id: binary_sensor.magnet_sensor_door_salon_state
+      - platform: state
+        entity_id: binary_sensor.magnet_sensor_window_bureau_state
+      - platform: state
+        entity_id: binary_sensor.magnet_sensor_door_bureau_state
+      - platform: state
+        entity_id: binary_sensor.magnet_sensor_window_cuisine_state
+      - platform: sun
+        event: sunset
+      - platform: sun
+        event: sunrise
+      - platform: sun
+        event: sunset
+        offset: "-00:15:00"
+      - platform: sun
+        event: sunrise
+        offset: "00:15:00"
+      - platform: time
+        at: input_datetime.antimoustiques_start_time
+      - platform: time
+        at: input_datetime.antimoustiques_stop_time
+      - platform: state
+        entity_id: alarm_control_panel.alarme
+    condition:
+      condition: and
+      conditions:
+        - condition: state
+          entity_id: input_boolean.moustiques_periode
+          state: "on"
+    action:
+      - choose:
+        - conditions:
+          - or:
+            - condition: state
+              entity_id: input_boolean.antimoustiques_use_sunset_sunrise
+              state: "on"
+            - condition: state
+              entity_id: input_boolean.antimoustiques_use_hours
+              state: "on"
+          sequence:
+            - choose:
+              - conditions: # On
+                - and:
+                  - condition: state
+                    entity_id: sensor.antimoustiques_time_is_between_start_and_stop_times
+                    state: "True"
+                  - or:
+                    - condition: state
+                      entity_id: binary_sensor.magnet_sensor_window_bureau_state
+                      state: "on"
+                    - and:
+                      - condition: state
+                        entity_id: binary_sensor.magnet_sensor_door_bureau_state
+                        state: "on"
+                      - or:
+                        - condition: state
+                          entity_id: binary_sensor.magnet_sensor_window_cuisine_state
+                          state: "on"
+                        - and:
+                          - condition: state
+                            entity_id: binary_sensor.magnet_sensor_window_chambre_state
+                            state: "on"
+                          - condition: state
+                            entity_id: binary_sensor.magnet_sensor_door_chambre_state
+                            state: "on"
+                        - and:
+                          - condition: state
+                            entity_id: binary_sensor.magnet_sensor_window_salon_state
+                            state: "on"
+                          - condition: state
+                            entity_id: binary_sensor.magnet_sensor_door_salon_state
+                            state: "on"
+                  - not:
+                    - or:
+                      - condition: state
+                        entity_id: alarm_control_panel.alarme
+                        state: "armed_away"
+                      - condition: state
+                        entity_id: alarm_control_panel.alarme
+                        state: "triggered"
+                sequence:
+                  - service: switch.turn_on
+                    target:
+                      entity_id: switch.antimoustiques_bureau
+              - conditions: # Off
+                  - or:
+                    - condition: state
+                      entity_id: sensor.antimoustiques_time_is_between_start_and_stop_times
+                      state: "False"
+                    - and:
+                      - condition: state
+                        entity_id: binary_sensor.magnet_sensor_window_bureau_state
+                        state: "off"
+                      - or:
+                        - condition: state
+                          entity_id: binary_sensor.magnet_sensor_door_bureau_state
+                          state: "off"
+                        - and:
+                          - condition: state
+                            entity_id: binary_sensor.magnet_sensor_window_cuisine_state
+                            state: "off"
+                          - or:
+                            - condition: state
+                              entity_id: binary_sensor.magnet_sensor_window_chambre_state
+                              state: "off"
+                            - condition: state
+                              entity_id: binary_sensor.magnet_sensor_door_chambre_state
+                              state: "off"
+                          - or:
+                            - condition: state
+                              entity_id: binary_sensor.magnet_sensor_window_salon_state
+                              state: "off"
+                            - condition: state
+                              entity_id: binary_sensor.magnet_sensor_door_salon_state
+                              state: "off"
+                    - condition: state
+                      entity_id: alarm_control_panel.alarme
+                      state: "armed_away"
+                sequence:
+                  - service: switch.turn_off
+                    target:
+                      entity_id: switch.antimoustiques_bureau

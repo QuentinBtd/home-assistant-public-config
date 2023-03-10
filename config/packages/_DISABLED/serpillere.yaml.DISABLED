@@ -1,0 +1,44 @@
+homeassistant:
+  customize:
+    switch.serpillere:
+      device_class: outlet
+      icon: mdi:power-plug
+
+switch:
+  - platform: template
+    switches:
+      serpillere:
+        friendly_name: Serpillère
+        value_template: "{{ is_state('switch.plug_osram_04', 'on') }}"
+        turn_on:
+          service: switch.turn_on
+          target:
+            entity_id: switch.plug_osram_04
+        turn_off:
+          service: switch.turn_off
+          target:
+            entity_id: switch.plug_osram_04
+
+automation:
+  - id: "serpillere_off"
+    alias: "Serpillère: turn OFF"
+    mode: restart
+    trigger:
+      - platform: state
+        entity_id: switch.serpillere
+        from: "off"
+        to: "on"
+    condition:
+      condition: and
+      conditions:
+        - condition: state
+          entity_id: switch.serpillere
+          state: "on"
+    action:
+      - delay:
+          hours: 2
+          minutes: 30
+          seconds: 0
+      - service: switch.turn_off
+        target:
+          entity_id: switch.serpillere

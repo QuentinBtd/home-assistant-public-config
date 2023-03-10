@@ -1,0 +1,45 @@
+input_boolean:
+  portail_rings:
+    name: Le portail sonne
+    initial: off
+
+binary_sensor:
+  - platform: template
+    sensors:
+      sar_portail_rings_trigger_alexa_alert:
+        friendly_name: "SAR - Le Portail sonne"
+        value_template: '{{ is_state("input_boolean.portail_rings","on") }}'
+        device_class: "door"
+
+sensor:
+  - platform: template
+    sensors:
+      secret_portail_rings_token:
+        value_template: !secret portail_rings_token
+
+automation:
+  - id: portail_rings
+    alias: "Portail : ça sonne"
+    mode: single
+    trigger:
+      - platform: webhook
+        webhook_id: "portail_rings"
+    condition:
+      condition: template
+      value_template: "{{ trigger.json['token'] ==  states('sensor.secret_portail_rings_token') }}"
+    action:
+      - service: media_player.play_media
+        target:
+          entity_id: group.echo_devices
+        data:
+          media_content_type: sound
+          media_content_id: amzn_sfx_doorbell_chime_01
+      - delay:
+          seconds: 2
+      - service: notify.alexa_media
+        data:
+          target: group.echo_devices
+          message: Quelqu'un sonne au portail
+          data:
+            type: tts
+

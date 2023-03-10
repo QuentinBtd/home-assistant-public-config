@@ -1,0 +1,72 @@
+homeassistant:
+  customize:
+    light.salon:
+      icon: "mdi:lightbulb-group"
+    light.bureau:
+      icon: "mdi:lightbulb-group"
+    light.chambre:
+      icon: "mdi:lightbulb-group"
+    light.couloir:
+      icon: "mdi:lightbulb-group"
+
+# input_boolean:
+#   debarras_light_force_state:
+#     name: Lumière Débarras Etat Forcé
+#     icon: "mdi:lightbulb-on-outline"
+
+# automation:
+#   - id: "debarras_light_on_with_sensor"
+#     alias: "Lumières : Débarras ON by sensor"
+#     trigger:
+#       - platform: state
+#         entity_id: binary_sensor.motion_sensor_debarras_zone
+#         to: "on"
+#     mode: restart
+#     action:
+#       - service: light.turn_on
+#         entity_id: light.debarras
+#         data:
+#           brightness_pct: 100
+#       # - delay: 0:02:00
+#       # - service: light.turn_off
+#       #   entity_id: light.debarras
+#   - id: "debarras_light_off_with_sensor"
+#     alias: "Lumières : Débarras OFF by sensor"
+#     trigger:
+#       - platform: state
+#         entity_id: binary_sensor.motion_sensor_debarras_zone
+#         to: "off"
+#     mode: restart
+#     condition:
+#       - condition: state
+#         entity_id: input_boolean.debarras_light_force_state
+#         state: "off"
+#     action:
+#       - service: light.turn_off
+#         entity_id: light.debarras
+#   - id: "debarras_light_on_with_force"
+#     alias: "Lumières : Débarras ON by force"
+#     trigger:
+#       - platform: state
+#         entity_id: input_boolean.debarras_light_force_state
+#         to: "on"
+#     mode: restart
+#     action:
+#       - service: light.turn_on
+#         entity_id: light.debarras
+#         data:
+#           brightness_pct: 100
+#   - id: "debarras_light_off_with_force"
+#     alias: "Lumières : Débarras OFF by force"
+#     trigger:
+#       - platform: state
+#         entity_id: input_boolean.debarras_light_force_state
+#         to: "off"
+#     mode: restart
+#     condition:
+#       - condition: state
+#         entity_id: binary_sensor.motion_sensor_debarras_zone
+#         state: "off"
+#     action:
+#       - service: light.turn_off
+#         entity_id: light.debarras

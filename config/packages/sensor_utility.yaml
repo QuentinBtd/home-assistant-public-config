@@ -1,0 +1,17 @@
+binary_sensor:
+  - platform: workday
+    name: workday
+    country: FR
+    workdays: [mon, tue, wed, thu, fri]
+  - platform: workday
+    name: workday_tomorrow
+    country: FR
+    workdays: [mon, tue, wed, thu, fri]
+    days_offset: 1
+sensor:
+  - platform: time_date
+    display_options:
+      - "date_time"
+      - "time"
+      - "date_time_iso"
+      - "date"

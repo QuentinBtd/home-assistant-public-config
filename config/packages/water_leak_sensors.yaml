@@ -1,0 +1,41 @@
+input_boolean:
+  water_leak_sensors_notify:
+    name: Notifications fuites d'eau 
+    icon: mdi:water-alert
+
+automation:
+  - id: "alert_water_leak_sensor_evier_cuisine"
+    alias: "Fuite d'Eau Evier Cuisine : Alerte"
+    trigger:
+      - platform: state
+        entity_id: binary_sensor.water_leak_sensor_evier_cusine_state
+    condition:
+      condition: state
+      entity_id: binary_sensor.water_leak_sensor_evier_cusine_state
+      state: "on"
+    action:
+      - alias: "Notify : Fuite d'Eau Evier Cuisine"
+        repeat:
+          while:
+          - and:
+            - condition: not
+              conditions:
+                - condition: state
+                  entity_id: binary_sensor.water_leak_sensor_evier_cusine_state
+                  state: "on"
+            - condition: state
+              entity_id: input_boolean.water_leak_sensors_notify
+              state: "on"
+          sequence:
+            - service: notify.alexa_media
+              data:
+                target: group.echo_devices
+                message: "De l'eau a été détectée sous l'évier de la cuisine !"
+                data:
+                  type: tts
+            - service: notify.all_users
+              data:
+                title: "💧 Alerte"
+                message: "De l'eau a été détectée sous l'évier de la cuisine !"
+            - delay: 
+                seconds: 10

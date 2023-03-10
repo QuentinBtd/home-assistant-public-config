@@ -1,0 +1,9 @@
+input_boolean:
+  moustiques_periode:
+    name: Période des moustiques
+  antimoustiques_mode_auto:
+    name: Antimoustiques Automatiques
+  antimoustiques_use_sunset_sunrise:
+    name: Utiliser lever/coucher du soleil
+  antimoustiques_use_hours:
+    name: Utiliser heures

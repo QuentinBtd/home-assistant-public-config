@@ -1,0 +1,23 @@
+automation:
+  - id: "get_zlinky_delivred_consumption"
+    alias: "Zlinky Tic : Get Linky Delivred Consumption" 
+    trigger: 
+      - minutes: /1
+        platform: time_pattern
+    action:
+      - service: zha_toolkit.attr_read
+        data:
+          ieee: 00:15:8d:00:05:d2:84:86
+          cluster: 1794
+          attribute: 0
+          endpoint: 1
+
+input_number:
+  zlinky_kwh_price:
+    name: Prix du kWh
+    unit_of_measurement: € /kWh
+    icon: mdi:currency-eur
+    min: 0.000000
+    max: 1.000000
+    step: 0.000001
+    mode: box

@@ -1,0 +1,24 @@
+sensor:
+  - platform: template
+    sensors:
+      secret_webhook_notify_notishell_token:
+        value_template: !secret webhook_notify_notishell_token
+  - platform: otp
+    name: otp_notishell
+    token: !secret otp_notishell
+
+automation:
+  - id: webhook_notify_notishell
+    alias: "Notify : webhook notishell"
+    mode: single
+    trigger:
+      - platform: webhook
+        webhook_id: "notishell"
+    condition:
+      condition: template
+      value_template: "{{ (trigger.json['token'] == states('sensor.secret_webhook_notify_notishell_token')) and (trigger.json['totp'] == states('sensor.otp_notishell')) }}"
+    action:
+      - service: notify.user_qbr
+        data:
+          title: "{{ trigger.json.title }}"
+          message: "{{ trigger.json['msg'] }}"

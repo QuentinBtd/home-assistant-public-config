@@ -1,0 +1,5 @@
+input_boolean:
+  spotify_lights_sync_bureau:
+    name: Syncroniser la musique avec lummiètres du Bureau
+    icon: mdi:track-light
+    initial: off

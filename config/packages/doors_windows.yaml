@@ -1,0 +1,50 @@
+homeassistant:
+  customize:
+    binary_sensor.magnet_sensor_door_front_state:
+      friendly_name: "Porte d'entrée"
+      device_class: door
+      state_icons:
+        "on": mdi:door-open
+        "off": mdi:door
+    binary_sensor.magnet_sensor_door_salon_state:
+      friendly_name: "Porte Salon"
+      device_class: door
+      state_icons:
+        "on": mdi:door-open
+        "off": mdi:door
+    binary_sensor.magnet_sensor_door_bureau_state:
+      friendly_name: "Porte Bureau"
+      device_class: door
+      state_icons:
+        "on": mdi:door-open
+        "off": mdi:door
+    binary_sensor.magnet_sensor_door_chambre_state:
+      friendly_name: "Porte Chambre"
+      device_class: door
+      state_icons:
+        "on": mdi:door-open
+        "off": mdi:door
+    binary_sensor.magnet_sensor_window_chambre_state:
+      friendly_name: "Fenêtre Chambre"
+      device_class: window
+      state_icons:
+        "on": mdi:window-open-variant
+        "off": mdi:window-closed-variant
+    binary_sensor.magnet_sensor_window_salon_state:
+      friendly_name: "Fenêtre Salon"
+      device_class: window
+      state_icons:
+        "on": mdi:window-open-variant
+        "off": mdi:window-closed-variant
+    binary_sensor.magnet_sensor_window_cuisine_state:
+      friendly_name: "Fenêtre Cuisine"
+      device_class: window
+      state_icons:
+        "on": mdi:window-open-variant
+        "off": mdi:window-closed-variant
+    binary_sensor.magnet_sensor_window_bureau_state:
+      friendly_name: "Fenêtre Bureau"
+      device_class: window
+      state_icons:
+        "on": mdi:window-open-variant
+        "off": mdi:window-closed-variant

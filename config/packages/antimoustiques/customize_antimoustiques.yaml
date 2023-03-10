@@ -1,0 +1,8 @@
+homeassistant:
+  customize:
+    switch.antimoustiques_bureau:
+      device_class: outlet
+    switch.antimoustiques_chambre:
+      device_class: outlet
+    switch.antimoustiques_salon:
+      device_class: outlet

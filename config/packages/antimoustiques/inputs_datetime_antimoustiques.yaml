@@ -1,0 +1,29 @@
+input_datetime:
+  antimoustiques_start_time_choice:
+    name: Heure d'allumage
+    icon: mdi:timer
+    has_date: false
+    has_time: true
+  antimoustiques_stop_time_choice:
+    name: Heure d'extinction
+    icon: mdi:timer
+    has_date: false
+    has_time: true
+  antimoustiques_start_time:
+    name: "Antimoustiques : start time"
+    icon: mdi:timer
+    has_date: false
+    has_time: true
+  antimoustiques_stop_time:
+    name: "Antimoustiques : stop time"
+    icon: mdi:timer
+    has_date: false
+    has_time: true
+  antimoustiques_sunrise_time:
+    name: "Antimoustiques : next sunrise time"
+    has_date: false
+    has_time: true
+  antimoustiques_sunset_time:
+    name: "Antimoustiques : next sunset time"
+    has_date: false
+    has_time: true

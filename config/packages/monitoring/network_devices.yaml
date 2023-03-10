@@ -1,0 +1,6 @@
+binary_sensor:
+  - platform: ping
+    name: "Wi-Fi_Repeater_TP-Link_RE450"
+    host: !secret wi-fi_repeater_tp-link_re450_ipv4_address
+    count: 1
+    scan_interval: 30

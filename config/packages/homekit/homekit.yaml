@@ -1,0 +1,9 @@
+homekit:
+  - name: HASS Bridge - 1
+    port: !secret homekit_hass_bridge_1_port
+    mode: bridge
+    filter:
+      include_entities: !secret homekit_hass_bridge_1_include_entities
+    entity_config:
+      alarm_control_panel.alarme:
+        code: !secret homekit_hass_bridge_1_alarm_control_panel_code

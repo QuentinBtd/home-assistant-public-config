@@ -1,0 +1,4 @@
+homeassistant:
+  customize:
+    media_player.television_salon:
+      friendly_name: Télévision Salon

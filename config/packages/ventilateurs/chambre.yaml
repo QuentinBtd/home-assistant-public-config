@@ -1,0 +1,54 @@
+homeassistant:
+  customize:
+    switch.ventilateur_chambre:
+      device_class: outlet
+      icon: mdi:fan
+
+input_number:
+  ventilateur_chambre_working_time:
+    name: Durée de fonctionnement
+    icon: mdi:transition-masked
+    min: 0
+    max: 10
+    step: 1
+    unit_of_measurement: heures
+
+switch:
+  - platform: template
+    switches:
+      ventilateur_chambre:
+        friendly_name: Ventilateur Chambre
+        value_template: "{{ is_state('switch.plug_osram_04', 'on') }}"
+        turn_on:
+          service: switch.turn_on
+          target:
+            entity_id: switch.plug_osram_04
+        turn_off:
+          service: switch.turn_off
+          target:
+            entity_id: switch.plug_osram_04
+
+automation:
+  - id: "ventilateur_chambre_off"
+    alias: "Ventilateurs : Turn OFF Chambre"
+    mode: restart
+    trigger:
+      - platform: state
+        entity_id: switch.ventilateur_chambre
+        from: "off"
+        to: "on"
+    condition:
+      condition: and
+      conditions:
+        - condition: state
+          entity_id: switch.ventilateur_chambre
+          state: "on"
+        - condition: state
+          entity_id: input_boolean.ventilateurs_periode
+          state: "on"
+    action:
+      - delay:
+          hours: "{{ states('input_number.ventilateur_chambre_working_time') | int }}"
+      - service: switch.turn_off
+        target:
+          entity_id: switch.ventilateur_chambre

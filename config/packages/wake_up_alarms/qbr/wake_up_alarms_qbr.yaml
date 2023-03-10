@@ -1,0 +1,485 @@
+input_datetime:
+  wake_up_qbr_work_time:
+    name: Heure
+    icon: mdi:timer
+    has_date: false
+    has_time: true
+  wake_up_qbr_occasional_time:
+    name: Heure
+    icon: mdi:timer
+    has_date: true
+    has_time: true
+
+input_boolean:
+  wake_up_qbr_work_state:
+    name: Etat
+    icon: mdi:alarm-check
+  wake_up_qbr_work_light:
+    name: En lumière
+    icon: mdi:lightbulb-on-outline
+  wake_up_qbr_work_music:
+    name: En musique
+    icon: mdi:music
+  wake_up_qbr_work_go2sleep_alert:
+    name: Avertissement dodo
+    icon: mdi:bell-sleep
+  wake_up_qbr_occasional_state:
+    name: Etat
+    icon: mdi:alarm-check
+  wake_up_qbr_occasional_light:
+    name: En lumière
+    icon: mdi:lightbulb-on-outline
+  wake_up_qbr_occasional_music:
+    name: En musique
+    icon: mdi:music
+  wake_up_qbr_occasional_go2sleep_alert:
+    name: Avertissement dodo
+    icon: mdi:bell-sleep
+
+input_select:
+  wake_up_qbr_work_playlist:
+    name: Playlist de réveil
+    options:
+      - Réveil de Quentin
+      - Réveil Calme de Quentin
+      - Réveil Epic de Quentin
+  wake_up_qbr_occasional_playlist:
+    name: Playlist de réveil
+    options:
+      - Réveil de Quentin
+      - Réveil Calme de Quentin
+      - Réveil Epic de Quentin
+
+input_number:
+  wake_up_qbr_work_light_time_transition:
+    name: Durée de transition
+    icon: mdi:transition-masked
+    min: 0
+    max: 60
+    step: 5
+    unit_of_measurement: minutes
+  wake_up_qbr_work_light_shift_start_time:
+    name: Décalage d'allumage
+    icon: mdi:chart-gantt
+    min: -30
+    max: 30
+    step: 5
+    unit_of_measurement: minutes
+  wake_up_qbr_work_go2sleep_time_before_alert:
+    name: Avertir X heures avant le réveil
+    icon: mdi:timer-sand
+    min: 2
+    max: 12
+    step: 1
+    unit_of_measurement: heures
+  wake_up_qbr_work_light_max_brightness:
+    name: Luminiosté maximale
+    icon: mdi:brightness-percent
+    min: 0
+    max: 100
+    step: 5
+    unit_of_measurement: "%"
+  wake_up_qbr_work_music_max_volume:
+    name: Volume maximal
+    icon: mdi:volume-high
+    min: 0
+    max: 100
+    step: 10
+    unit_of_measurement: "%"
+  wake_up_qbr_work_music_volume_transition:
+    name: Durée de transition
+    icon: mdi:transition
+    min: 0
+    max: 30
+    step: 5
+    unit_of_measurement: "minutes"
+  wake_up_qbr_work_music_shift_start_time:
+    name: Décalage du démarrage de la musqie
+    icon: mdi:chart-gantt
+    min: -30
+    max: 30
+    step: 5
+    unit_of_measurement: minutes
+  wake_up_qbr_occasional_light_time_transition:
+    name: Durée de transition
+    icon: mdi:transition-masked
+    min: 0
+    max: 60
+    step: 5
+    unit_of_measurement: minutes
+  wake_up_qbr_occasional_light_shift_start_time:
+    name: Décalage d'allumage
+    icon: mdi:chart-gantt
+    min: -30
+    max: 30
+    step: 5
+    unit_of_measurement: minutes
+  wake_up_qbr_occasional_go2sleep_time_before_alert:
+    name: Avertir X heures avant le réveil
+    icon: mdi:timer-sand
+    min: 2
+    max: 12
+    step: 1
+    unit_of_measurement: heures
+  wake_up_qbr_occasional_light_max_brightness:
+    name: Luminiosté maximale
+    icon: mdi:brightness-percent
+    min: 0
+    max: 100
+    step: 5
+    unit_of_measurement: "%"
+  wake_up_qbr_occasional_music_max_volume:
+    name: Volume maximal
+    icon: mdi:volume-high
+    min: 0
+    max: 100
+    step: 10
+    unit_of_measurement: "%"
+  wake_up_qbr_occasional_music_volume_transition:
+    name: Durée de transition
+    icon: mdi:transition
+    min: 0
+    max: 30
+    step: 5
+    unit_of_measurement: "minutes"
+  wake_up_qbr_occasional_music_shift_start_time:
+    name: Décalage du démarrage de la musqie
+    icon: mdi:chart-gantt
+    min: -30
+    max: 30
+    step: 5
+    unit_of_measurement: minutes
+
+
+automation:
+  ###
+  # Wake UP work QBR
+  ###
+  ### Music
+  - id: "wake_up_qbr_work_music"
+    alias: "Wake UP work QBR : start music"
+    trigger:
+      - platform: template
+        value_template: "{{ states('sensor.time') == (((state_attr('input_datetime.wake_up_qbr_work_time', 'timestamp') | int) + ((states('input_number.wake_up_qbr_work_music_shift_start_time') | int) * 60)) | timestamp_custom('%H:%M', False)) }}"
+    condition:
+      condition: and
+      conditions:
+        - condition: state
+          entity_id: binary_sensor.workday
+          state: "on"
+        - condition: state
+          entity_id: input_boolean.wake_up_qbr_work_music
+          state: "on"
+        - condition: state
+          entity_id: input_boolean.wake_up_qbr_work_state
+          state: "on"
+    action:
+      - service: script.wake_up_qbr_music_new
+        data:
+          playlist: "{{ states('input_select.wake_up_qbr_work_playlist') }}"
+          volume_transition: "{{ states('input_number.wake_up_qbr_work_music_volume_transition') }}"
+          volume_max: "{{ states('input_number.wake_up_qbr_work_music_max_volume') }}"
+  ### Light
+  - id: "wake_up_qbr_work_light"
+    alias: "Wake UP work QBR : turn on light"
+    trigger:
+      - platform: template
+        value_template: "{{ states('sensor.time') == (((state_attr('input_datetime.wake_up_qbr_work_time', 'timestamp') | int) + ((states('input_number.wake_up_qbr_work_light_shift_start_time') | int) * 60)) | timestamp_custom('%H:%M', False)) }}"
+    condition:
+      condition: and
+      conditions:
+        - condition: state
+          entity_id: binary_sensor.workday
+          state: "on"
+        - condition: state
+          entity_id: input_boolean.wake_up_qbr_work_light
+          state: "on"
+        - condition: state
+          entity_id: input_boolean.wake_up_qbr_work_state
+          state: "on"
+    action:
+      - service: script.wake_up_qbr_light
+        data_template:
+          time_transition: "{{ ((states('input_number.wake_up_qbr_work_light_time_transition') | int) * 60) }}"
+          max_light_brightness: "{{ states('input_number.wake_up_qbr_work_light_max_brightness') }}"
+  ### Go2Sleep Alert
+  - id: wake_up_qbr_work_go2sleep_alert
+    alias: "Wake UP work QBR : send alert to go sleep"
+    trigger:
+      - platform: template
+        value_template: "{{ states('sensor.time') == (((state_attr('input_datetime.wake_up_qbr_work_time', 'timestamp') | int) - (states('input_number.wake_up_qbr_work_go2sleep_time_before_alert') | int * 3600)) | timestamp_custom('%H:%M', False)) }}"
+    condition:
+      condition: and
+      conditions:
+        - condition: state
+          entity_id: binary_sensor.workday_tomorrow
+          state: "on"
+        - condition: state
+          entity_id: input_boolean.wake_up_qbr_work_state
+          state: "on"
+        - condition: state
+          entity_id: input_boolean.wake_up_qbr_work_go2sleep_alert
+          state: "on"
+    action:
+      - service: script.wake_up_qbr_go2sleep_alert
+        data:
+          hours: "{{ (states('input_number.wake_up_qbr_work_go2sleep_time_before_alert') | int) }}"
+
+  ###
+  # Wake UP Occasional QBR
+  ###
+  ### Turn Off
+  - id: "wake_up_qbr_occasional_turn_off"
+    alias: "Wake UP Occasional QBR : turn OFF"
+    trigger:
+      - platform: time
+        at: input_datetime.wake_up_qbr_occasional_time
+    condition:
+      condition: and
+      conditions:
+        - condition: state
+          entity_id: input_boolean.wake_up_qbr_occasional_state
+          state: "on"
+    action:
+      - delay: 00:00:10
+      - service: input_boolean.turn_off
+        data: {}
+        entity_id: input_boolean.wake_up_qbr_occasional_state
+  ### Music
+  - id: "wake_up_qbr_occasional_music"
+    alias: "Wake UP Occasional QBR : start music"
+    trigger:
+      - platform: template
+        value_template: "{{ states('sensor.date_time') == (((state_attr('input_datetime.wake_up_qbr_occasional_time', 'timestamp') | int) + ((states('input_number.wake_up_qbr_occasional_music_shift_start_time') | int) * 60)) | timestamp_custom('%Y-%m-%d, %H:%M', True)) }}"
+    condition:
+      condition: and
+      conditions:
+        - condition: state
+          entity_id: input_boolean.wake_up_qbr_occasional_music
+          state: "on"
+        - condition: state
+          entity_id: input_boolean.wake_up_qbr_occasional_state
+          state: "on"
+    action:
+      - service: script.wake_up_qbr_music_new
+        data:
+          playlist: "{{ states('input_select.wake_up_qbr_occasional_playlist') }}"
+          volume_transition: "{{ states('input_number.wake_up_qbr_occasional_music_volume_transition') }}"
+          volume_max: "{{ states('input_number.wake_up_qbr_occasional_music_max_volume') }}"
+  ### Light
+  - id: "wake_up_qbr_occasional_light"
+    alias: "Wake UP Occasional QBR : turn on light"
+    trigger:
+      - platform: template
+        value_template: "{{ states('sensor.date_time') == (((state_attr('input_datetime.wake_up_qbr_occasional_time', 'timestamp') | int) + ((states('input_number.wake_up_qbr_occasional_light_shift_start_time') | int) * 60)) | timestamp_custom('%Y-%m-%d, %H:%M', True)) }}"
+    condition:
+      condition: and
+      conditions:
+        - condition: state
+          entity_id: input_boolean.wake_up_qbr_occasional_light
+          state: "on"
+        - condition: state
+          entity_id: input_boolean.wake_up_qbr_occasional_state
+          state: "on"
+    action:
+      - service: script.wake_up_qbr_light
+        data_template:
+          time_transition: "{{ ((states('input_number.wake_up_qbr_occasional_light_time_transition') | int) * 60) }}"
+          max_light_brightness: "{{ states('input_number.wake_up_qbr_occasional_light_max_brightness') }}"
+  ### Go2Sleep Alert
+  - id: wake_up_qbr_occasional_go2sleep_alert
+    alias: "Wake UP Occasional QBR : send alert to go sleep"
+    trigger:
+      - platform: template
+        value_template: "{{ states('sensor.date_time') == (((state_attr('input_datetime.wake_up_qbr_occasional_time', 'timestamp') | int) - ((states('input_number.wake_up_qbr_occasional_go2sleep_time_before_alert') | int) * 3600 )) | timestamp_custom('%Y-%m-%d, %H:%M', True)) }}"
+    condition:
+      condition: and
+      conditions:
+        - condition: state
+          entity_id: input_boolean.wake_up_qbr_occasional_state
+          state: "on"
+        - condition: state
+          entity_id: input_boolean.wake_up_qbr_occasional_go2sleep_alert
+          state: "on"
+    action:
+      - service: script.wake_up_qbr_go2sleep_alert
+        data:
+          hours: "{{ (states('input_number.wake_up_qbr_occasional_go2sleep_time_before_alert') | int) }}"
+
+script:
+  wake_up_qbr_music:
+    sequence:
+      - service: media_player.select_source
+        continue_on_error: true
+        data:
+          entity_id: media_player.spotify_quentin
+          source: "chambre"
+      - service: media_player.play_media
+        continue_on_error: true
+        data_template:
+          entity_id: media_player.spotify_quentin
+          media_content_type: music
+          media_content_id: spotify:track:4jaXxB0DJ6X4PdjMK8XVfu
+      - service: media_player.volume_set
+        continue_on_error: true
+        data:
+          entity_id: media_player.spotify_quentin
+          volume_level: 0.0
+      - service: media_player.play_media
+        continue_on_error: true
+        data_template:
+          entity_id: media_player.spotify_quentin
+          media_content_type: playlist
+          media_content_id: >
+            {% if playlist == 'Réveil Calme de Quentin' %}
+              spotify:playlist:3fZoUfwY0fhuMt7IKrVd0b
+            {% else %}
+              spotify:playlist:6QcK7aQq56hWEAQpj5zhiN
+            {% endif %}
+      - service: media_player.shuffle_set
+        continue_on_error: true
+        data:
+          entity_id: media_player.spotify_quentin
+          shuffle: true
+      - service: media_player.media_pause
+        continue_on_error: true
+        target:
+          entity_id: media_player.spotify_quentin
+      - delay: 
+          seconds: 2
+      - service: media_player.media_play
+        continue_on_error: true
+        target:
+          entity_id: media_player.spotify_quentin
+      - alias: "Volume transition"
+        repeat:
+          while:
+            - condition: template
+              value_template: "{{ ((state_attr('media_player.spotify_quentin', 'volume_level') * 100) | int) < (volume_max | int) }}"
+          sequence:
+            - service: media_player.volume_set
+              continue_on_error: true
+              target:
+                entity_id: media_player.spotify_quentin
+              data_template:
+                volume_level: >-
+                  {%- if volume_transition == 0 -%}
+                  {{ (volume_max / 100) }}
+                  {%- else -%}
+                  {{ ((state_attr('media_player.spotify_quentin', 'volume_level') * 100 + 1) / 100) }}
+                  {%- endif -%}
+            - delay: 
+                milliseconds: "{{ ((((volume_transition | int ) * 60  / (volume_max | int )) * 1000) | int) }}"
+  wake_up_qbr_music_new:
+    mode: single
+    sequence:
+      - service: media_player.play_media
+        continue_on_error: true
+        data_template:
+          media_content_id: "Playlist Le Silence chez Quentin"
+          media_content_type: "SPOTIFY"
+        target:
+          entity_id: media_player.alexa_echo_device_table_de_chevet_droite
+      - delay: 
+          seconds: 5
+      # - service: media_player.media_pause
+      #   target:
+      #     entity_id: media_player.alexa_echo_device_table_de_chevet_droite
+      # - service: notify.notify
+      #   data:
+      #     message: "Mis en pause"
+      - alias: "Set volume to 0"
+        continue_on_error: true
+        repeat:
+          while:
+            - condition: template
+              value_template: >-
+                {{ (((state_attr('media_player.alexa_echo_device_table_de_chevet_droite', 'volume_level') * 100) | int) != 0) or (((state_attr('media_player.spotify_quentin', 'volume_level') * 100) | int) != 0) }}
+          sequence:
+            # - service: notify.notify
+            #   data:
+            #     message: "Attente du volume à 0 au lieu de {{ ((state_attr('media_player.alexa_echo_device_table_de_chevet_droite', 'volume_level') * 100) | int) }} et {{ ((state_attr('media_player.spotify_quentin', 'volume_level') * 100) | int) }}%"
+            - service: media_player.volume_set
+              continue_on_error: true
+              data_template:
+                volume_level: 0
+              target:
+                entity_id: media_player.alexa_echo_device_table_de_chevet_droite
+            - service: media_player.volume_set
+              continue_on_error: true
+              data_template:
+                volume_level: 0
+              target:
+                entity_id: media_player.spotify_quentin
+            - delay: 
+                seconds: 1
+      - delay: 
+          seconds: 5
+      - service: media_player.play_media
+        continue_on_error: true
+        data_template:
+          media_content_id: "Playlist {{ playlist }} en aléatoire"
+          media_content_type: "SPOTIFY"
+        target:
+          entity_id: media_player.alexa_echo_device_table_de_chevet_droite
+      - service: media_player.repeat_set
+        continue_on_error: true
+        data:
+          repeat: all
+        target:
+          entity_id: media_player.spotify_quentin
+      - delay: 
+          seconds: 5
+      - alias: "Volume transition"
+        continue_on_error: true
+        repeat:
+          while:
+            - condition: template
+              value_template: "{{ ((state_attr('media_player.spotify_quentin', 'volume_level') * 100) | int) < (volume_max | int) }}"
+          sequence:
+            # - service: notify.notify
+            #   data:
+            #     message: "Dans la boucle avec un volume de {{ ((state_attr('media_player.spotify_quentin', 'volume_level') * 100) | int) }} %"
+            - service: media_player.volume_set
+              continue_on_error: true
+              target:
+                entity_id: media_player.spotify_quentin
+              data_template:
+                volume_level: >-
+                  {%- if volume_transition == 0 -%}
+                  {{ (volume_max / 100) }}
+                  {%- else -%}
+                  {{ ((state_attr('media_player.spotify_quentin', 'volume_level') * 100 + 1) / 100) }}
+                  {%- endif -%}
+            - delay: 
+                milliseconds: "{{ ((((volume_transition | int ) * 60  / (volume_max | int )) * 1000) | int) }}"
+
+  wake_up_qbr_light:
+    sequence:
+      - service: light.turn_on
+        data:
+          brightness_pct: 1
+          color_name: tan
+        target:
+          entity_id: light.chambre
+      - delay: "00:00:01"
+      - service: light.turn_on
+        data:
+          brightness_pct: "{{ max_light_brightness }}"
+          color_name: tan
+          transition: "{{ time_transition }}"
+        target:
+          entity_id: light.chambre
+  wake_up_qbr_go2sleep_alert:
+    sequence:
+    - service: notify.user_qbr
+      data_template:
+        title: "⏰ Information"
+        message: >-
+          Le réveil sonnera dans {{hours}} heures. Il est temps d'aller vous coucher. 😴
+  stop_script_wake_up_qbr_music:
+    sequence:
+      - service: script.turn_off
+        entity_id: script.wake_up_qbr_music
+      - service: script.turn_off
+        entity_id: script.wake_up_qbr_music_new

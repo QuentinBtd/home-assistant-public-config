@@ -1,0 +1,5 @@
+prometheus:
+  namespace: hass
+  # component_config_glob:
+  #   sensor.uptime:
+  #     override_metric:

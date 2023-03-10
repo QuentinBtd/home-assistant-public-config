@@ -1,0 +1,12 @@
+media_player:
+  - platform: smartthings_soundbar
+    name: Barre de son Salon smartthings_soundbar
+    api_key: !secret smartthings_api_key
+    device_id: !secret smartthings_soundbar_hw_q-90b_id
+    max_volume: 20
+
+  - platform: smartthings_soundbar
+    name: Barre de son Salon smartthings_soundbar2
+    api_key: !secret smartthings_api_key
+    device_id: !secret smartthings_soundbar_hw_q-90b_id
+    max_volume: 20
