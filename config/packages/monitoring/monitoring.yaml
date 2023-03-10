@@ -17,7 +17,7 @@ automation:
     alias: "Monitoring : Check Zigbee devices battery state"
     trigger:
       platform: numeric_state
-      entity_id: !secret monitoring_check_battery
+      entity_id: !secret monitoring_check_battery_entites
       below: 20
       above: 18
     action:
