@@ -12,5 +12,3 @@ notify:
     platform: group
     services:
     - service: mobile_app_iphone_qbr
-
-
